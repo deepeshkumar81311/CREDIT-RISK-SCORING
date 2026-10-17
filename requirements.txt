@@ -1,0 +1,14 @@
+jupyter
+ipykernel
+pandas
+numpy
+matplotlib
+matplotlib-inline
+seaborn
+scipy
+scikit-learn
+xgboost
+shap
+joblib
+fastapi
+uvicorn[standard]
