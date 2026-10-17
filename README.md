@@ -2,7 +2,7 @@
 
 A machine learning project that predicts the likelihood of loan default based on an applicant's financial and loan details.
 
-**Live Demo:** Coming soon — deployment in progress.
+**Live Demo:** https://credit-risk-scoring-1j2f.onrender.com/
 
 ## What it does
 
@@ -40,11 +40,6 @@ Start the application:
 ```bash
 uvicorn main:app --reload
 ```
-
-Open `http://127.0.0.1:8000` to use the dashboard.
-
-API documentation is available at `http://127.0.0.1:8000/docs`.
-
 ## API endpoints
 
 | Method | Endpoint | Description |
