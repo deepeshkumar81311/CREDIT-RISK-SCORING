@@ -4,6 +4,9 @@ A machine learning project that predicts the likelihood of loan default based on
 
 **Live Demo:** https://credit-risk-scoring-1j2f.onrender.com/
 
+<img width="948" height="902" alt="image" src="https://github.com/user-attachments/assets/435c7237-9903-4447-b612-b913b40cebbc" />
+
+
 ## What it does
 
 - Estimates the probability of loan default.
@@ -48,6 +51,11 @@ uvicorn main:app --reload
 | `GET` | `/health` | Checks application status |
 | `POST` | `/predict` | Returns a loan default prediction |
 
+
+
+
 ## Note
 
 This project was developed for learning and demonstration. Its predictions should not be treated as a standalone basis for lending decisions.
+
+
