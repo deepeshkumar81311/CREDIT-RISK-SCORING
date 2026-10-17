@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Credit Risk Scoring</title>
+  <meta name="description" content="Estimate the probability that a loan applicant will default.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="static/style.css">
+  <!-- Only needed if the UI is hosted separately from the API:
+  <script>window.APP_CONFIG = { apiBase: "https://your-api.onrender.com" };</script> -->
+</head>
+<body>
+  <div class="shell">
+
+    <header class="topbar">
+      <div class="brand">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <path d="M4 22a12 12 0 0 1 24 0" fill="none" stroke="#0E1A2B" stroke-width="3"/>
+          <path d="M16 22 L22 11" stroke="#2C4DE0" stroke-width="3" stroke-linecap="round"/>
+          <circle cx="16" cy="22" r="3" fill="#0E1A2B"/>
+        </svg>
+        Credit Risk Scoring
+      </div>
+      <div class="status" id="status" data-state="checking" role="status">
+        <i></i><span id="statusText">Checking model</span>
+      </div>
+    </header>
+
+    <main class="layout">
+
+      <section class="intro">
+        <h1>Loan default risk, scored in a moment.</h1>
+        <p>Enter the applicant and loan details. The model returns a default probability and compares it with the decision threshold it was trained to use.</p>
+      </section>
+
+      <form class="sheet" id="loan-form" novalidate autocomplete="off">
+        <div class="sheet-head">
+          <h2>Application details</h2>
+          <div class="examples">
+            <span>Fill with an example</span>
+            <button type="button" class="chip-btn" data-example="steady">Steady borrower</button>
+            <button type="button" class="chip-btn" data-example="stretched">Stretched borrower</button>
+          </div>
+        </div>
+
+        <fieldset class="section">
+          <legend>Applicant</legend>
+          <p class="hint">Who is applying and how stable their situation looks.</p>
+          <div class="fields">
+            <div class="field">
+              <label class="lbl" for="age">Age <small>years</small></label>
+              <div class="control"><input id="age" type="number" inputmode="numeric" min="18" max="100" step="1" value="28" required></div>
+            </div>
+            <div class="field">
+              <label class="lbl" for="income">Annual income</label>
+              <div class="control"><span class="affix">$</span><input id="income" type="number" inputmode="decimal" min="1" step="any" value="52000" required></div>
+            </div>
+            <div class="field">
+              <label class="lbl" for="emp">Employment length</label>
+              <div class="control"><input id="emp" type="number" inputmode="decimal" min="0" max="80" step="0.5" value="4" required><span class="affix end">years</span></div>
+            </div>
+            <div class="field">
+              <label class="lbl" for="intent">Loan purpose</label>
+              <div class="control select">
+                <select id="intent" required>
+                  <option value="PERSONAL" selected>Personal</option>
+                  <option value="EDUCATION">Education</option>
+                  <option value="MEDICAL">Medical</option>
+                  <option value="VENTURE">Venture</option>
+                  <option value="HOMEIMPROVEMENT">Home improvement</option>
+                  <option value="DEBTCONSOLIDATION">Debt consolidation</option>
+                </select>
+              </div>
+            </div>
+            <div class="field full">
+              <span class="lbl" id="homeLbl">Home ownership</span>
+              <div class="seg" role="radiogroup" aria-labelledby="homeLbl">
+                <input type="radio" name="home" id="home-rent" value="RENT" checked><label for="home-rent">Rent</label>
+                <input type="radio" name="home" id="home-mortgage" value="MORTGAGE"><label for="home-mortgage">Mortgage</label>
+                <input type="radio" name="home" id="home-own" value="OWN"><label for="home-own">Own</label>
+                <input type="radio" name="home" id="home-other" value="OTHER"><label for="home-other">Other</label>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="section">
+          <legend>Loan</legend>
+          <p class="hint">What is being borrowed and on what terms.</p>
+          <div class="fields">
+            <div class="field full">
+              <span class="lbl" id="gradeLbl">Loan grade <small>A is the strongest</small></span>
+              <div class="seg" role="radiogroup" aria-labelledby="gradeLbl">
+                <input type="radio" name="grade" id="g-a" value="A"><label for="g-a">A</label>
+                <input type="radio" name="grade" id="g-b" value="B"><label for="g-b">B</label>
+                <input type="radio" name="grade" id="g-c" value="C" checked><label for="g-c">C</label>
+                <input type="radio" name="grade" id="g-d" value="D"><label for="g-d">D</label>
+                <input type="radio" name="grade" id="g-e" value="E"><label for="g-e">E</label>
+                <input type="radio" name="grade" id="g-f" value="F"><label for="g-f">F</label>
+                <input type="radio" name="grade" id="g-g" value="G"><label for="g-g">G</label>
+              </div>
+            </div>
+            <div class="field">
+              <label class="lbl" for="amnt">Loan amount</label>
+              <div class="control"><span class="affix">$</span><input id="amnt" type="number" inputmode="decimal" min="1" step="any" value="10000" required></div>
+            </div>
+            <div class="field">
+              <label class="lbl" for="rate">Interest rate</label>
+              <div class="control"><input id="rate" type="number" inputmode="decimal" min="0" max="100" step="0.01" value="11.5" required><span class="affix end">%</span></div>
+            </div>
+            <div class="field full">
+              <label class="lbl" for="lti">Loan as share of income</label>
+              <div class="control">
+                <input id="lti" type="number" inputmode="decimal" min="0" max="100" step="1" readonly required>
+                <span class="affix end">%</span>
+                <button type="button" class="mode" id="ltiMode" aria-pressed="false" title="Switch between calculated and manual entry">Calculated</button>
+              </div>
+            </div>
+          </div>
+        </fieldset>
+
+        <fieldset class="section">
+          <legend>Credit history</legend>
+          <p class="hint">What the credit bureau already shows.</p>
+          <div class="fields">
+            <div class="field">
+              <span class="lbl" id="dfltLbl">Previous default on file</span>
+              <div class="seg" role="radiogroup" aria-labelledby="dfltLbl">
+                <input type="radio" name="dflt" id="d-n" value="N" checked><label for="d-n">No</label>
+                <input type="radio" name="dflt" id="d-y" value="Y"><label for="d-y">Yes</label>
+              </div>
+            </div>
+            <div class="field">
+              <label class="lbl" for="hist">Credit history length</label>
+              <div class="control"><input id="hist" type="number" inputmode="numeric" min="0" max="80" step="1" value="5" required><span class="affix end">years</span></div>
+            </div>
+          </div>
+        </fieldset>
+
+        <div class="actions">
+          <button type="submit" class="btn-primary" id="submitBtn">
+            <span class="spin" aria-hidden="true"></span>
+            <span id="submitLabel">Score application</span>
+          </button>
+          <button type="reset" class="btn-ghost">Reset</button>
+        </div>
+      </form>
+
+      <aside class="panel" id="panel" data-state="idle" aria-live="polite">
+        <div class="panel-top">
+          <span>Default probability</span>
+          <span class="badge" id="badge">Waiting for input</span>
+        </div>
+
+        <svg class="dial" viewBox="0 0 320 202" role="img" aria-label="Dial showing the predicted probability of default">
+          <g id="ticks"></g>
+          <path class="track" d="M30 170 A130 130 0 0 1 290 170" pathLength="100"/>
+          <path class="fill" id="fill" d="M30 170 A130 130 0 0 1 290 170" pathLength="100"/>
+          <g class="cutoff" id="cutoff"><title>Decision threshold</title><line id="cutoffLine" x1="0" y1="0" x2="0" y2="0"/></g>
+          <g class="needle" id="needle">
+            <path d="M160 54 L165 170 L155 170 Z"/>
+            <circle cx="160" cy="170" r="10"/>
+            <circle cx="160" cy="170" r="3.5" class="hub"/>
+          </g>
+          <text x="30" y="194" class="end-label">0%</text>
+          <text x="290" y="194" class="end-label" text-anchor="end">100%</text>
+        </svg>
+
+        <div class="readout">
+          <strong><span id="pct">–</span><span class="unit" id="unit">%</span></strong>
+          <p id="verdictText">Fill in the application and select Score application.</p>
+        </div>
+
+        <dl class="stats">
+          <div><dt>Decision threshold</dt><dd id="statCut">–</dd></div>
+          <div><dt>Distance from threshold</dt><dd id="statMargin">–</dd></div>
+          <div><dt>Model prediction</dt><dd id="statPred">–</dd></div>
+        </dl>
+
+        <details class="api">
+          <summary>API response</summary>
+          <pre id="raw">No request sent yet.</pre>
+        </details>
+
+        <div class="history" id="historyWrap" hidden>
+          <h4>Earlier scores</h4>
+          <ul id="history"></ul>
+        </div>
+      </aside>
+
+    </main>
+
+    <footer class="foot">
+      Scores come from a statistical model and should inform a credit officer's decision, not replace it.
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="alert"></div>
+
+  <script src="static/script.js" defer></script>
+</body>
+</html>
